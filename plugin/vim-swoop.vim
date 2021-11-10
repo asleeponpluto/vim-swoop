@@ -78,6 +78,7 @@ function! s:initSwoop()
     endif
 
     execute "setlocal filetype=".initFileType
+    execute "setlocal nobuflisted"
     let s:swoopBuf = bufnr('%')
 
     call s:initHighlight()
@@ -85,6 +86,7 @@ function! s:initSwoop()
 
     inoremap <buffer> <silent> <CR> <Esc>
     nnoremap <buffer> <silent> <CR> :call SwoopSelect()<CR>
+    nnoremap <buffer> <silent> q :q<CR>
 endfunction
 
 function! s:initHighlight()
@@ -155,7 +157,10 @@ endfunction
 function! Swoop()
     "echom ' -> swoop'
     if s:multiSwoop == 0
-        call setline(1, "")
+        let l:swoopWinId = bufwinid('swoopBuf')
+        if (l:swoopWinId != -1)
+            call win_gotoid(l:swoopWinId)
+        endif
     endif
     if s:multiSwoop == -1
         let s:multiSwoop = 0
@@ -168,8 +173,11 @@ function! Swoop()
     endif
 
     execute ':1'
-    if g:swoopAutoInsertMode == 1
-        startinsert
+    if getline(1) == ""
+        startinsert!
+    elseif g:swoopAutoInsertMode == 1
+        " call setline(1, "")
+        startinsert!
     endif
 endfunction
 
@@ -235,6 +243,12 @@ function! SwoopQuit()
     "echom ' -> quit'
 
     call delete('swoopBuf')
+
+    let l:swoopWinNr = bufwinnr('swoopBuf')
+    if (l:swoopWinNr != -1)
+        execute l:swoopWinNr . "wincmd c"
+    endif
+
     call s:restorePosition()
     call clearmatches()
     call s:restoreCpo()
@@ -577,4 +591,7 @@ augroup swoopAutoCmd
 
     autocmd!    BufWrite    swoopBuf    :call   SwoopSave()
     autocmd!    BufWinLeave   swoopBuf   :call  SwoopQuit()
+
+    autocmd!    BufEnter    swoopBuf    let b:coc_enabled=0
+    autocmd!    ExitPre     swoopBuf    setlocal buftype=nofile
 augroup END
