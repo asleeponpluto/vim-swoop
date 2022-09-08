@@ -79,6 +79,7 @@ function! s:initSwoop()
 
     execute "setlocal filetype=".initFileType
     execute "setlocal nobuflisted"
+    execute "setlocal buftype=nofile"
     let s:swoopBuf = bufnr('%')
 
     call s:initHighlight()
@@ -336,6 +337,10 @@ endfunction
 function! s:selectPosition()
     let swoopInfo = s:getCurrentLineSwoopInfo()
 
+    if len(swoopInfo) != 2
+        return
+    endif
+
 	let s:beforeSwoopPos[0] = swoopInfo[0]
 	let s:beforeSwoopPos[1] = swoopInfo[1]
 	let s:beforeSwoopPos[2] = 1
@@ -487,8 +492,6 @@ endfunction
 
 function! s:getAllBuffer()
     let allBuf = filter(range(1, bufnr('$')), 'buflisted(v:val)')
-    let swoopIndex = index(allBuf, s:swoopBuf)
-    call remove(allBuf, swoopIndex)
     return allBuf
 endfunction
 
@@ -586,12 +589,11 @@ endif
 "   AUTO COMMAND
 "   ============
 augroup swoopAutoCmd
-    autocmd!    CursorHold    swoopBuf    :call   s:cursorMoved()
-    autocmd!    CursorMovedI   swoopBuf   :call   s:cursorMoved()
+    autocmd!  CursorHold    swoopBuf  :call s:cursorMoved()
+    autocmd!  CursorMovedI  swoopBuf  :call s:cursorMoved()
 
-    autocmd!    BufWrite    swoopBuf    :call   SwoopSave()
-    autocmd!    BufWinLeave   swoopBuf   :call  SwoopQuit()
+    autocmd!  BufWrite      swoopBuf  :call SwoopSave()
+    autocmd!  BufWinLeave   swoopBuf  :call SwoopQuit()
 
-    autocmd!    BufEnter    swoopBuf    let b:coc_enabled=0
-    autocmd!    ExitPre     swoopBuf    setlocal buftype=nofile
+    autocmd!  BufEnter      swoopBuf  let b:coc_enabled=0
 augroup END
