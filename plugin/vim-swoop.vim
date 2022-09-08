@@ -337,7 +337,7 @@ endfunction
 function! s:selectPosition()
     let swoopInfo = s:getCurrentLineSwoopInfo()
 
-    if len(swoopInfo) != 2
+    if len(swoopInfo) < 2
         return
     endif
 
